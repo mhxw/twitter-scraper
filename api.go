@@ -94,6 +94,8 @@ func (s *Scraper) handleResponse(resp *http.Response, target interface{}) error 
 		s.guestToken = ""
 	}
 
+	fmt.Println(string(content))
+
 	if target == nil {
 		return nil
 	}
