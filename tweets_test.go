@@ -241,9 +241,9 @@ func TestQuotedAndReply(t *testing.T) {
 func TestRetweet(t *testing.T) {
 	sample := &twitterscraper.Tweet{
 		ConversationID: "1758837061786779942",
-		HTML:           "no ads, just bangers<br><br>aka your For You feed with Premium+<br><br>subscribe here → <a href=\"https://x.com/i/premium_sign_up\">https://t.co/APTO1t7kMk</a>",
+		HTML:           "no ads, just bangers<br><br>aka your For You feed with Premium+<br><br>subscribe here → <a href=\"https://twitter.com/i/premium_sign_up\">https://t.co/APTO1t7kMk</a>",
 		ID:             "1758837061786779942",
-		URLs:           []string{"https://x.com/i/premium_sign_up"},
+		URLs:           []string{"https://twitter.com/i/premium_sign_up"},
 		IsSelfThread:   false,
 		Name:           "Premium",
 		PermanentURL:   "https://twitter.com/premium/status/1758837061786779942",

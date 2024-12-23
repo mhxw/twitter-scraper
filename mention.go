@@ -10,12 +10,22 @@ import (
 const NotificationsMentionsAPI = "https://twitter.com/i/api/2/notifications/mentions.json"
 const NotificationsAllAPI = "https://twitter.com/i/api/2/notifications/all.json"
 
-func (s *Scraper) GetMentionNotifications(cursor string, count uint64) ([]*Tweet, string, error) {
+// GetMentionNotifications
+// Fetches mention notifications for the authenticated user, showing tweets that mention the user.
+//
+// Rate limit: 180 actions per 15 minutes.
+//
+// Parameters:
+// cursor (str, optional): Pagination cursor for fetching a specific page of mention notifications.
+//
+// Returns:
+// tuple: A tuple containing a list of tweets mentioning the user, the next cursor, and the previous cursor for pagination.
+func (s *Scraper) GetMentionNotifications(cursor string, count uint64) ([]*Tweet, string, string, error) {
 	if count > 40 {
 		count = 40
 	}
 	if !s.isLogged {
-		return nil, "", errors.New("scraper is not logged in for notifications")
+		return nil, "", "", errors.New("scraper is not logged in for notifications")
 	}
 
 	var queryParams string
@@ -28,25 +38,25 @@ func (s *Scraper) GetMentionNotifications(cursor string, count uint64) ([]*Tweet
 	reqURL := fmt.Sprintf("%s?%s", NotificationsMentionsAPI, queryParams)
 	req, err := s.newRequest("GET", reqURL)
 	if err != nil {
-		return nil, "", err
+		return nil, "", "", err
 	}
 
 	var timeline *timelineV1
 	err = s.RequestAPI(req, &timeline)
 	if err != nil {
-		return nil, "", err
+		return nil, "", "", err
 	}
 
-	tweets, nextCursor := timeline.parseTweets()
-	return tweets, nextCursor, nil
+	tweets, bottomCursor, topCursor := timeline.parseTweetsDouble()
+	return tweets, bottomCursor, topCursor, nil
 }
 
-func (s *Scraper) GetAllNotifications(cursor string, count uint64) ([]*Tweet, string, error) {
+func (s *Scraper) GetAllNotifications(cursor string, count uint64) ([]*Tweet, string, string, error) {
 	if count > 40 {
 		count = 40
 	}
 	if !s.isLogged {
-		return nil, "", errors.New("scraper is not logged in for notifications")
+		return nil, "", "", errors.New("scraper is not logged in for notifications")
 	}
 
 	var queryParams string
@@ -59,15 +69,15 @@ func (s *Scraper) GetAllNotifications(cursor string, count uint64) ([]*Tweet, st
 	reqURL := fmt.Sprintf("%s?%s", NotificationsAllAPI, queryParams)
 	req, err := s.newRequest("GET", reqURL)
 	if err != nil {
-		return nil, "", err
+		return nil, "", "", err
 	}
 
 	var timeline *timelineV1
 	err = s.RequestAPI(req, &timeline)
 	if err != nil {
-		return nil, "", err
+		return nil, "", "", err
 	}
 
-	tweets, nextCursor := timeline.parseTweets()
-	return tweets, nextCursor, nil
+	tweets, bottomCursor, topCursor := timeline.parseTweetsDouble()
+	return tweets, bottomCursor, topCursor, nil
 }

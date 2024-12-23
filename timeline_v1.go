@@ -268,6 +268,41 @@ func (timeline *timelineV1) parseTweets() ([]*Tweet, string) {
 	return orderedTweets, cursor
 }
 
+func (timeline *timelineV1) parseTweetsDouble() ([]*Tweet, string, string) {
+	var bottomCursor string
+	var topCursor string
+	var pinnedTweet *Tweet
+	var orderedTweets []*Tweet
+	for _, instruction := range timeline.Timeline.Instructions {
+		if instruction.PinEntry.Entry.Content.Item.Content.Tweet.ID != "" {
+			if tweet := timeline.parseTweet(instruction.PinEntry.Entry.Content.Item.Content.Tweet.ID); tweet != nil {
+				pinnedTweet = tweet
+			}
+		}
+		for _, entry := range instruction.AddEntries.Entries {
+			if tweet := timeline.parseTweet(entry.Content.Item.Content.Tweet.ID); tweet != nil {
+				orderedTweets = append(orderedTweets, tweet)
+			}
+			if entry.Content.Operation.Cursor.CursorType == "Bottom" {
+				bottomCursor = entry.Content.Operation.Cursor.Value
+			}
+			if entry.Content.Operation.Cursor.CursorType == "Top" {
+				topCursor = entry.Content.Operation.Cursor.Value
+			}
+		}
+		if instruction.ReplaceEntry.Entry.Content.Operation.Cursor.CursorType == "Bottom" {
+			bottomCursor = instruction.ReplaceEntry.Entry.Content.Operation.Cursor.Value
+		}
+		if instruction.ReplaceEntry.Entry.Content.Operation.Cursor.CursorType == "Top" {
+			topCursor = instruction.ReplaceEntry.Entry.Content.Operation.Cursor.Value
+		}
+	}
+	if pinnedTweet != nil && len(orderedTweets) > 0 {
+		orderedTweets = append([]*Tweet{pinnedTweet}, orderedTweets...)
+	}
+	return orderedTweets, bottomCursor, topCursor
+}
+
 func (timeline *timelineV1) parseUsers() ([]*Profile, string) {
 	users := make(map[string]Profile)
 
