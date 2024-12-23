@@ -31,6 +31,7 @@ type Profile struct {
 	PinnedTweetIDs []string
 	TweetsCount    int
 	URL            string
+	UserIDBase64   string
 	UserID         string
 	Username       string
 	Website        string

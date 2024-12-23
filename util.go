@@ -395,8 +395,9 @@ func parseProfileV2(user userResult) Profile {
 		Name:           u.Name,
 		PinnedTweetIDs: u.PinnedTweetIdsStr,
 		TweetsCount:    u.StatusesCount,
-		URL:            "https://twitter.com/" + u.ScreenName,
-		UserID:         user.ID,
+		URL:            "https://x.com/" + u.ScreenName,
+		UserIDBase64:   user.ID, // base64.StdEncoding.EncodeToString([]byte("User:"+restID))
+		UserID:         user.RestID,
 		Username:       u.ScreenName,
 		Sensitive:      u.PossiblySensitive,
 		Following:      u.Following,
