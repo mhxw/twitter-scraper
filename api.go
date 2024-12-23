@@ -2,6 +2,7 @@ package twitterscraper
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -94,13 +95,18 @@ func (s *Scraper) handleResponse(resp *http.Response, target interface{}) error 
 		s.guestToken = ""
 	}
 
-	fmt.Println(string(content))
+	// fmt.Println(string(content))
 
 	if target == nil {
 		return nil
 	}
 
-	return json.Unmarshal(content, target)
+	err = json.Unmarshal(content, target)
+	if err != nil {
+		return errors.New(fmt.Sprintf("%s: %s", "failed to unmarshal response body", string(content)))
+	}
+
+	return nil
 }
 
 // GetGuestToken from Twitter API
