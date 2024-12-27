@@ -32,6 +32,7 @@ type Profile struct {
 	TweetsCount    int
 	URL            string
 	UserIDBase64   string
+	UserLabelType  string `json:"userLabelType"`
 	UserID         string
 	Username       string
 	Website        string
@@ -53,6 +54,14 @@ type user struct {
 	Errors []struct {
 		Message string `json:"message"`
 	} `json:"errors"`
+}
+
+type userV2 struct {
+	Data struct {
+		User struct {
+			Result userResult `json:"result"`
+		} `json:"user"`
+	} `json:"data"`
 }
 
 // GetProfile return parsed user profile.
@@ -115,6 +124,51 @@ func (s *Scraper) GetProfile(username string) (Profile, error) {
 	return parseProfile(jsn.Data.User.Result.Legacy), nil
 }
 
+// GetProfileV2 return parsed user profile.
+func (s *Scraper) GetProfileV2(username string) (Profile, error) {
+	var jsn userV2
+	req, err := http.NewRequest("GET", "https://api.twitter.com/graphql/Yka-W8dz7RaEuQNkroPkYw/UserByScreenName", nil)
+	if err != nil {
+		return Profile{}, err
+	}
+
+	variables := map[string]interface{}{
+		"screen_name":              username,
+		"withSafetyModeUserFields": true,
+	}
+
+	features := map[string]interface{}{
+		"hidden_profile_subscriptions_enabled":                              true,
+		"rweb_tipjar_consumption_enabled":                                   true,
+		"responsive_web_graphql_exclude_directive_enabled":                  true,
+		"verified_phone_label_enabled":                                      false,
+		"subscriptions_verification_info_is_identity_verified_enabled":      true,
+		"subscriptions_verification_info_verified_since_enabled":            true,
+		"highlights_tweets_tab_ui_enabled":                                  true,
+		"responsive_web_twitter_article_notes_tab_enabled":                  true,
+		"subscriptions_feature_can_gift_premium":                            true,
+		"creator_subscriptions_tweet_preview_api_enabled":                   true,
+		"responsive_web_graphql_skip_user_profile_image_extensions_enabled": false,
+		"responsive_web_graphql_timeline_navigation_enabled":                true,
+	}
+
+	query := url.Values{}
+	query.Set("variables", mapToJSONString(variables))
+	query.Set("features", mapToJSONString(features))
+	req.URL.RawQuery = query.Encode()
+
+	err = s.RequestAPI(req, &jsn)
+	if err != nil {
+		return Profile{}, err
+	}
+
+	if jsn.Data.User.Result.Legacy.ScreenName == "" {
+		return Profile{}, fmt.Errorf("either @%s does not exist or is private", username)
+	}
+
+	return parseProfileV2(jsn.Data.User.Result), nil
+}
+
 func (s *Scraper) GetProfileByID(userID string) (Profile, error) {
 	var jsn user
 	req, err := http.NewRequest("GET", "https://twitter.com/i/api/graphql/Qw77dDjp9xCpUY-AXwt-yQ/UserByRestId", nil)
@@ -170,6 +224,48 @@ func (s *Scraper) GetProfileByID(userID string) (Profile, error) {
 	}
 
 	return parseProfile(jsn.Data.User.Result.Legacy), nil
+}
+
+func (s *Scraper) GetProfileByIDV2(userID string) (Profile, error) {
+	var jsn userV2
+	req, err := http.NewRequest("GET", "https://twitter.com/i/api/graphql/Qw77dDjp9xCpUY-AXwt-yQ/UserByRestId", nil)
+	if err != nil {
+		return Profile{}, err
+	}
+
+	variables := map[string]interface{}{
+		"userId":                   userID,
+		"withSafetyModeUserFields": true,
+	}
+
+	features := map[string]interface{}{
+		"hidden_profile_subscriptions_enabled":                              true,
+		"rweb_tipjar_consumption_enabled":                                   true,
+		"responsive_web_graphql_exclude_directive_enabled":                  true,
+		"verified_phone_label_enabled":                                      false,
+		"highlights_tweets_tab_ui_enabled":                                  true,
+		"responsive_web_twitter_article_notes_tab_enabled":                  true,
+		"subscriptions_feature_can_gift_premium":                            true,
+		"creator_subscriptions_tweet_preview_api_enabled":                   true,
+		"responsive_web_graphql_skip_user_profile_image_extensions_enabled": false,
+		"responsive_web_graphql_timeline_navigation_enabled":                true,
+	}
+
+	query := url.Values{}
+	query.Set("variables", mapToJSONString(variables))
+	query.Set("features", mapToJSONString(features))
+	req.URL.RawQuery = query.Encode()
+
+	err = s.RequestAPI(req, &jsn)
+	if err != nil {
+		return Profile{}, err
+	}
+
+	if jsn.Data.User.Result.Legacy.ScreenName == "" {
+		return Profile{}, fmt.Errorf("either @%s does not exist or is private", userID)
+	}
+
+	return parseProfileV2(jsn.Data.User.Result), nil
 }
 
 // GetUserIDByScreenName from API

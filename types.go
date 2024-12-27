@@ -231,6 +231,14 @@ type (
 		WithheldInCountries     []interface{} `json:"withheld_in_countries"`
 	}
 
+	label struct {
+		Badge struct {
+			Url string `json:"url"`
+		} `json:"badge"`
+		Description   string `json:"description"`
+		UserLabelType string `json:"userLabelType"`
+	}
+
 	Place struct {
 		ID          string `json:"id"`
 		PlaceType   string `json:"place_type"`

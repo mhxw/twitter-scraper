@@ -359,7 +359,7 @@ func parseProfile(user legacyUser) Profile {
 		Name:           user.Name,
 		PinnedTweetIDs: user.PinnedTweetIdsStr,
 		TweetsCount:    user.StatusesCount,
-		URL:            "https://twitter.com/" + user.ScreenName,
+		URL:            "https://x.com/" + user.ScreenName,
 		UserID:         user.IDStr,
 		Username:       user.ScreenName,
 		FollowedBy:     user.FollowedBy,
@@ -412,6 +412,10 @@ func parseProfileV2(user userResult) Profile {
 
 	if len(u.Entities.URL.Urls) > 0 {
 		profile.Website = u.Entities.URL.Urls[0].ExpandedURL
+	}
+
+	if user.AffiliatesHighlightedLabel.Label != nil {
+		profile.UserLabelType = user.AffiliatesHighlightedLabel.Label.UserLabelType
 	}
 
 	return profile
