@@ -22,6 +22,10 @@ type NewTweet struct {
 }
 
 type newTweet struct {
+	Errors []struct {
+		Message string `json:"message"`
+		Code    int    `json:"code"`
+	} `json:"errors"`
 	Data struct {
 		CreateTweet struct {
 			TweetResults struct {
@@ -132,6 +136,10 @@ func (s *Scraper) CreateTweet(tweet NewTweet) (*Tweet, error) {
 	err = s.RequestAPI(req, &response)
 	if err != nil {
 		return nil, err
+	}
+
+	if len(response.Errors) > 0 {
+		return nil, errors.New(response.Errors[0].Message)
 	}
 
 	if result := response.parse(); result != nil {
